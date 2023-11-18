@@ -1,1 +1,0 @@
-LABEL_TITLE = ("Verdana", 10)
