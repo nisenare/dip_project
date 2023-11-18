@@ -1,0 +1,12 @@
+import tkinter as tk
+from gui.main_view import MainView
+
+def main():
+    app = tk.Tk()
+    main_view = MainView(app)
+    app.mainloop()
+    main_view.cap.release()
+    return 0
+
+if __name__ == "__main__":
+    exit(main())
