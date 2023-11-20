@@ -61,6 +61,7 @@ class MainView(tk.Frame):
             self.__get_video()
 
         self.bind("<Destroy>", self.__on_destroy)
+        self.__src_combo_box.bind("<<ComboboxSelected>>", self.__set_cam_index)
 
     def __get_cam_indexes(self):
         self.__cam_indexes = []
@@ -68,6 +69,13 @@ class MainView(tk.Frame):
             this_cap = cv2.VideoCapture(i)
             if this_cap.isOpened():
                 self.__cam_indexes.append(i)
+
+    def __set_cam_index(self, event):
+        selected_index = int(self.__src_combo_box.get().split(" ")[1])
+        self.__video_label.after_cancel(self.__video_label_after_id)
+        self.__cap.release()
+        self.__cap = cv2.VideoCapture(selected_index, cv2.CAP_DSHOW)
+        self.__get_video()
 
     def __get_video(self):
         if self.__cap is None:
@@ -81,7 +89,7 @@ class MainView(tk.Frame):
             img = ImageTk.PhotoImage(image = im)
             self.__video_label.config(image = img)
             self.__video_label.image = img
-            self.__video_label.after(10, self.__get_video)
+            self.__video_label_after_id = self.__video_label.after(10, self.__get_video)
         else:
             self.__video_label.image = ""
             self.__cap.release()
@@ -101,5 +109,4 @@ class MainView(tk.Frame):
         return resized
     
     def __on_destroy(self, event):
-        print("ON DESTROY")
         self.__cap.release()
