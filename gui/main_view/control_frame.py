@@ -1,8 +1,6 @@
 import tkinter as tk
 import cv2
 from tkinter import ttk
-from PIL import Image
-from PIL import ImageTk
 from gui.main_view.video_label import VideoLabel
 
 class ControlFrame(tk.Frame):
@@ -69,16 +67,6 @@ class ConfigFrame(tk.LabelFrame):
         selected_index = int(self.__src_combo_box.get().split(" ")[1])
         self.__video_label.change_cam_index(selected_index)
 
-    def set_video_label(self, video_label: VideoLabel):
-        if not self.__video_label is None:
-            return
-        self.__video_label = video_label
-        self.__get_cam_indexes()
-        self.__fill_combo_box()
-        if len(self.__cam_indexes) > 0:
-            self.__video_label.set_cam_index_first_time(0)
-            self.__video_label.play_cam_video()
-
     def __get_cam_indexes(self):
         self.__cam_indexes = []
         for i in range(0, 10):
@@ -88,10 +76,19 @@ class ConfigFrame(tk.LabelFrame):
             this_cap.release()
 
     def __fill_combo_box(self):
+        indexes_copy = self.__cam_indexes.copy()
+        for i in range(0, len(indexes_copy)):
+            indexes_copy[i] = "Source " + str(indexes_copy[i])
+        self.__src_combo_box["values"] = indexes_copy
+        self.__src_combo_box.current(0)
+
+    def set_video_label(self, video_label: VideoLabel):
+        if not self.__video_label is None:
+            return
+        self.__video_label = video_label
+        self.__get_cam_indexes()
         if len(self.__cam_indexes) > 0:
-            indexes_copy = self.__cam_indexes.copy()
-            for i in range(0, len(indexes_copy)):
-                indexes_copy[i] = "Source " + str(indexes_copy[i])
-            self.__src_combo_box["values"] = indexes_copy
-            self.__src_combo_box.current(0)
+            self.__fill_combo_box()
+            self.__video_label.set_cam_index_first_time(0)
+            self.__video_label.play_cam_video()
     

@@ -64,6 +64,5 @@ class VideoLabel(tk.Label):
         else:
             r = width / float(w)
             dim = (width, int(h * r))
-        resized = cv2.resize(image, dim, interpolation = inter)
-        return resized
+        return cv2.resize(image, dim, interpolation = inter)
         

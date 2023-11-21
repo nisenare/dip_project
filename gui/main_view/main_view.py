@@ -1,8 +1,6 @@
 import tkinter as tk
 import cv2
 from tkinter import ttk
-from PIL import Image
-from PIL import ImageTk
 from gui.main_view.control_frame import ControlFrame
 from gui.main_view.video_label import VideoLabel
 # python -m pip install pillow
@@ -25,6 +23,8 @@ class MainView(tk.Frame):
         self.__video_label = VideoLabel(master)
         self.__control_frame = ControlFrame(master)
         self.__control_frame.set_video_label(self.__video_label)
+
+        self.bind("<Destroy>", self.__on_destroy)
 
     def __on_destroy(self, event):
         self.__video_label.cap_release()

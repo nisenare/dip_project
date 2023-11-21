@@ -1,5 +1,5 @@
 import tkinter as tk
-from gui.main_view import MainView
+from gui.main_view.main_view import MainView
 
 def main():
     app = tk.Tk()
