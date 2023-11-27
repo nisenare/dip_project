@@ -1,5 +1,7 @@
 # python -m pip install pillow
-# pytjon -m pip install imutils
+# python -m pip install imutils
+# python -m pip install ultralytics
+
 
 import tkinter as tk
 from gui.main_view.main_view import MainView
