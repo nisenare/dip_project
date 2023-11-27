@@ -1,3 +1,6 @@
+# python -m pip install pillow
+# pytjon -m pip install imutils
+
 import tkinter as tk
 from gui.main_view.main_view import MainView
 

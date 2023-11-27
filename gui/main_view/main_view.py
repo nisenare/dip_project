@@ -3,8 +3,6 @@ import cv2
 from tkinter import ttk
 from gui.main_view.control_frame import ControlFrame
 from gui.main_view.video_label import VideoLabel
-# python -m pip install pillow
-# pytjon -m pip install imutils
 
 class MainView(tk.Frame):
 
