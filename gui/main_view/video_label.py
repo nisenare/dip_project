@@ -1,5 +1,6 @@
 import tkinter as tk
 import cv2
+import model.video_analysis
 from PIL import Image
 from PIL import ImageTk
 
@@ -17,6 +18,7 @@ class VideoLabel(tk.Label):
             pady = 10)
         self.__cap = None
         self.__after_id = None
+        self.__video_analyzer = model.video_analysis.VideoAnalizer()
 
     def cap_release(self):
         if self.__cap is None:
@@ -27,6 +29,7 @@ class VideoLabel(tk.Label):
         if not self.__cap is None:
             return
         self.__cap = cv2.VideoCapture(index, cv2.CAP_DSHOW)
+        self.__cap.set(cv2.CAP_PROP_FPS, 30)
     
     def change_cam_index(self, new_index):
         if self.__after_id is None:
@@ -34,6 +37,7 @@ class VideoLabel(tk.Label):
         self.after_cancel(self.__after_id)
         self.__cap.release()
         self.__cap = cv2.VideoCapture(new_index, cv2.CAP_DSHOW)
+        self.__cap.set(cv2.CAP_PROP_FPS, 30)
         self.play_cam_video()
 
     def play_cam_video(self):
@@ -41,8 +45,14 @@ class VideoLabel(tk.Label):
             return
         ret, frame = self.__cap.read()
         if ret == True:
-            h = abs(int(self.master.winfo_height()))
-            frame = self.__image_resize(frame, height = h)
+            height = abs(int(self.master.winfo_height()))
+            frame = self.__image_resize(frame, height = height)
+
+
+            # analysis
+            frame, x, y, w, h = self.__video_analyzer.analizeFrame(frame)
+
+
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             im = Image.fromarray(frame_rgb)
             img = ImageTk.PhotoImage(image = im)

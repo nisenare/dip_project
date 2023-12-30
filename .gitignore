@@ -1,5 +1,11 @@
 __pycache__/
 *.py[cod]
 *$py.class
-negative/*
-positive/*
+*.jpg
+*.jpeg
+*.exe
+*.webp
+*.avif
+*.png
+cascade_trainer/
+classifier/

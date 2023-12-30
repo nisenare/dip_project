@@ -1,8 +1,6 @@
 # python -m pip install pillow
 # python -m pip install imutils
-# python -m pip install ultralytics
-
-
+# python -m pip install opencv-python
 import tkinter as tk
 from gui.main_view.main_view import MainView
 
