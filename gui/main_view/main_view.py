@@ -12,7 +12,7 @@ class MainView(tk.Frame):
         master.title("Validador de calidad por medio del volumen del líquido")
         master.geometry("800x450")
         master.minsize(750, 350)
-        master.maxsize(800, 450)
+        # master.maxsize(800, 450)
 
         # layout principal
         master.columnconfigure(0, weight = 3)
@@ -20,10 +20,4 @@ class MainView(tk.Frame):
         master.rowconfigure(1, weight = 1)
 
         self.__video_label = VideoLabel(master)
-        self.__control_frame = ControlFrame(master)
-        self.__control_frame.set_video_label(self.__video_label)
-
-        self.bind("<Destroy>", self.__on_destroy)
-
-    def __on_destroy(self, event):
-        self.__video_label.cap_release()
+        self.__control_frame = ControlFrame(master, self.__video_label)

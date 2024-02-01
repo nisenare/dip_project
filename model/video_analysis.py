@@ -4,7 +4,7 @@ class VideoAnalizer:
 
     def __init__(self, bottle_cascade_path = "./model/coke_500ml.xml"):
         self.__bottle_cascade = cv2.CascadeClassifier(bottle_cascade_path)
-        self.__last_frame_bottle_rect = None
+        self.__last_frame_bottle_rect = 0
 
     def analizeFrame(self, frame):
         frame_with_roi = self.__detectBottle(frame)
