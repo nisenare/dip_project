@@ -7,5 +7,7 @@ __pycache__/
 *.webp
 *.avif
 *.png
+*.yaml
+*.txt
 cascade_trainer/
 classifier/

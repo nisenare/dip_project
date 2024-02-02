@@ -1,6 +1,6 @@
-# python -m pip install pillow
-# python -m pip install imutils
-# python -m pip install opencv-python
+# python -m pip install opencv-contrib-python pillow imutils ultralytics
+# deprecated cvlib tensorflow
+
 import tkinter as tk
 from gui.main_view.main_view import MainView
 

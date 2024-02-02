@@ -12,7 +12,6 @@ class MainView(tk.Frame):
         master.title("Validador de calidad por medio del volumen del líquido")
         master.geometry("800x450")
         master.minsize(750, 350)
-        # master.maxsize(800, 450)
 
         # layout principal
         master.columnconfigure(0, weight = 3)

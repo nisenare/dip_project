@@ -31,7 +31,7 @@ class VideoLabel(tk.Label):
         if not self.__running:
             self.__running = True
             self.__update_frame()
-       
+
     def set_cam_index_first_time(self, index):
         if not self.__cap is None:
             return
@@ -53,28 +53,22 @@ class VideoLabel(tk.Label):
             img = ImageTk.PhotoImage(image = im)
             self.config(image = img)
             self.image = img
-            
         if self.__running:
             self.after(self.__delay, self.__update_frame)
 
-    def __image_resize(self, image, width = None, height = None, inter = cv2.INTER_AREA):
+    def __image_resize(self, image, height):
         dim = None
         (h, w) = image.shape[:2]
-        # if width is None and height is None:
-        #     return image
-        # if width is None:
         r = height / float(h)
         dim = (int(w * r), height)
-        # else:
-        #     r = width / float(w)
-        #     dim = (width, int(h * r))
-        return cv2.resize(image, dim, interpolation = inter)
-    
+        return cv2.resize(image, dim, interpolation = cv2.INTER_AREA)
+
     def __on_destroy(self, event):
         self.__cap.release()
-    
+
     def __on_resize(self, event):
         self.__resize_height = self.winfo_height()
+
 
 class ThreadedVideoCapture:
 
@@ -85,7 +79,6 @@ class ThreadedVideoCapture:
         self.__cap.set(cv2.CAP_PROP_BUFFERSIZE, 2)
         self.__video_source = index
         self.__video_analyzer = model.video_analysis.VideoAnalizer()
-        #threading
         self.__thread = threading.Thread(target = self.__process)
         self.__video_stop = threading.Event()
         self.ret = False
@@ -109,18 +102,17 @@ class ThreadedVideoCapture:
     def get_frame(self):
         return self.ret, self.frame
 
-
     def __process(self):
         while not self.__video_stop.is_set():
             ret, frame = self.__cap.read()
             
             if ret:
 
-                #TODO: Analysis here
+                frame = self.__video_analyzer.analizeFrame(frame)
 
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             else:
-                print('[MyVideoCapture] stream end: ', self.__video_source)
+                print('[ThreadedVideoCapture] stream end: ', self.__video_source)
                 self.__video_stop.set()
                 break
                 

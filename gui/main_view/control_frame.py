@@ -65,7 +65,8 @@ class ConfigFrame(tk.LabelFrame):
         self.__resize_check = ttk.Checkbutton(self.__resize_section,
             text = "Autofit",
             command = self.__video_label.toggle_resize,
-            state = "!selected"
+            onvalue = 1,
+            offvalue = 0
         )
         self.__resize_check.grid(row = 0, column = 0, sticky = "nsew", padx = 5)        
 
