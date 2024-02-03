@@ -9,5 +9,9 @@ __pycache__/
 *.png
 *.yaml
 *.txt
+*.cache
+*.csv
+events.*
+runs/
 cascade_trainer/
 classifier/
