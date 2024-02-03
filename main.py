@@ -1,5 +1,5 @@
-# python -m pip install opencv-contrib-python pillow imutils ultralytics
-# deprecated cvlib tensorflow
+# python -m pip install opencv-contrib-python pillow imutils ultralytics cvlib
+# deprecated tensorflow
 
 import tkinter as tk
 from gui.main_view.main_view import MainView

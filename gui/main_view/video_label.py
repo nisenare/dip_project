@@ -4,6 +4,7 @@ import model.video_analysis
 import threading
 import time
 import numpy as np
+import platform
 from PIL import Image
 from PIL import ImageTk
 
@@ -35,7 +36,10 @@ class VideoLabel(tk.Label):
     def set_cam_index_first_time(self, index):
         if not self.__cap is None:
             return
-        self.__cap = ThreadedVideoCapture(index = index, api_preference = cv2.CAP_DSHOW)
+        if platform.system() == "Windows":
+            self.__cap = ThreadedVideoCapture(index = index, api_preference = cv2.CAP_DSHOW)
+        elif platform.system() == "Linux":
+            self.__cap = ThreadedVideoCapture(index = index, api_preference = None)
         self.__cap.start()
 
     def change_cam_index(self, new_index):
@@ -73,9 +77,10 @@ class VideoLabel(tk.Label):
 class ThreadedVideoCapture:
 
     def __init__(self, api_preference, index = 0):
-        self.__cap = cv2.VideoCapture(index, api_preference)
-        self.__cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-        self.__cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+        self.__api_preference = api_preference
+        self.__cap = cv2.VideoCapture(index, self.__api_preference)
+        self.__cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+        self.__cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
         self.__cap.set(cv2.CAP_PROP_BUFFERSIZE, 2)
         self.__video_source = index
         self.__video_analyzer = model.video_analysis.VideoAnalizer()
@@ -88,9 +93,9 @@ class ThreadedVideoCapture:
         self.__video_stop.set()
         self.__thread.join()
         self.__cap.release()
-        self.__cap = cv2.VideoCapture(index, cv2.CAP_DSHOW)
-        self.__cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-        self.__cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+        self.__cap = cv2.VideoCapture(index, self.__api_preference)
+        self.__cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+        self.__cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
         self.__cap.set(cv2.CAP_PROP_BUFFERSIZE, 2)
         self.__video_stop.clear()
         self.__thread = threading.Thread(target = self.__process)
@@ -107,15 +112,12 @@ class ThreadedVideoCapture:
             ret, frame = self.__cap.read()
             
             if ret:
-
-                frame = self.__video_analyzer.analizeFrame(frame)
-
+                frame = self.__video_analyzer.analize_frame(frame)
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             else:
                 print('[ThreadedVideoCapture] stream end: ', self.__video_source)
                 self.__video_stop.set()
                 break
-                
             self.ret = ret
             self.frame = cv2.resize(frame, (640, 480))
             

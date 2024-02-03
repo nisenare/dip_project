@@ -1,25 +1,41 @@
 import cv2
-import cvlib as cv
-from cvlib.object_detection import draw_bbox
+from ultralytics import YOLO
 
 class VideoAnalizer:
 
-    def __init__(self, bottle_cascade_path = "./model/coke_500ml.xml"):
-        # self.__bottle_cascade = cv2.CascadeClassifier(bottle_cascade_path)
-        self.__last_frame_bottle_rect = 0
+                                                            # cm / pixel
+    def __init__(self, yolo_model_path = "./model/last.pt", scale_factor = 18.7 / 380):
+        self.__model = model = YOLO(yolo_model_path)
+        self.__scale_factor = scale_factor
 
-    def analizeFrame(self, frame):
-        bbox, frame_with_roi = self.__detectBottle(frame)
-        return frame_with_roi
+    def analize_frame(self, frame):
+        (x1, y1, x2, y2), frame = self.__detect_liquid(frame)
+        return frame
         # self.__calculateVolume(frame_with_roi)
         # return frame_with_roi
     
-    def __detectBottle(self, frame):
-        bbox, label, conf = cv.detect_common_objects(frame, model="yolov3")
-        frame = draw_bbox(frame, bbox, label, conf)
-        return bbox, frame
-        
-    def __calculateVolume(self, frame_with_roi):
+    def set_scale_factor(self, factor):
+        self.__scale_factor = factor
+
+    def __detect_liquid(self, frame):
+        results = self.__model(frame, stream = True, verbose = False)
+        x1, y1, x2, y2 = 0, 0, 0, 0
+        for r in results:
+            boxes = r.boxes
+            if boxes:
+                box = boxes[0]
+                x1, y1, x2, y2 = box.xyxy[0]
+                x1, y1, x2, y2 = int(x1), int(y1) - 10, int(x2), int(y2) # convert to int values
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 255), 2)
+                org = [x1, y1]
+                font = cv2.FONT_HERSHEY_COMPLEX_SMALL
+                fontScale = 1
+                color = (255, 255, 0)
+                thickness = 2
+                cv2.putText(frame, "Liquido", org, font, fontScale, color, thickness)
+        return (x1, y1, x2, y2), frame
+
+    def __calculate_volume(self, frame_with_roi):
         if self.__last_frame_bottle_rect == 0:
             return
 
