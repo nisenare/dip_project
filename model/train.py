@@ -33,8 +33,9 @@ def calculate_volume(roi):
     volume = 0
     roi_orig = roi.copy()[:,int(roi.shape[1]/2):]
     roi = cv2.cvtColor(roi_orig, cv2.COLOR_BGR2GRAY)
-    roi = 255 - roi
-    roi = cv2.GaussianBlur(roi, (7, 7), 1)
+    thresh = cv2.threshold(roi, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5,5))
+    roi = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=1)
     ret, roi_bin = cv2.threshold(roi, 127, 255, cv2.THRESH_BINARY)
     contours, hierarchy = cv2.findContours(roi_bin, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     if contours:
@@ -57,7 +58,6 @@ while True:
             box = boxes[0]
             x1, y1, x2, y2 = box.xyxy[0]
             x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
-            # cv2.rectangle(frame, (x1 - 10, y1 - 10), (x2 + 10, y2), (0, 255, 0), 3)
             org_height = [x1 - 10, y1 - 15]
             font = cv2.FONT_HERSHEY_PLAIN
             fontScale = 1

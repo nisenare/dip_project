@@ -4,11 +4,12 @@ import numpy as np
 from ultralytics import YOLO
 
 class VideoAnalizer:
-                                                            # cm / pixel
-    def __init__(self, yolo_model_path = "./model/last.pt", scale_factor = 18.7 / 380):
+                                                            # cm / pixel                         ml
+    def __init__(self, yolo_model_path = "./model/last.pt", scale_factor = 18.7 / 380, desired = 500):
         self.__model = model = YOLO(yolo_model_path)
         self.__scale_factor = scale_factor
         self.__show_vars = True
+        self.__desired = 500
 
     def analize_frame(self, frame):
         try:
@@ -42,7 +43,7 @@ class VideoAnalizer:
                     break
                 h = round(height * self.__scale_factor, 2)
                 w = round(width * self.__scale_factor, 2)
-        return (x1, y1, x2, y2), h, w, frame
+        return (x1 - 10, y1 - 15, x2 + 10, y2), h, w, frame
     
     def __show_vars_on_image(self, roi_bounds, h, w, volume, frame):
         if w == 0 or h == 0:
@@ -82,8 +83,9 @@ class VideoAnalizer:
         ]
         roi_orig = frame.copy()[:,int(frame.shape[1]/2):]
         frame = cv2.cvtColor(roi_orig, cv2.COLOR_BGR2GRAY)
-        frame = 255 - frame
-        frame = cv2.GaussianBlur(frame, (3, 3), 1)
+        thresh = cv2.threshold(frame, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3,3))
+        frame = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=1)
         ret, roi_bin = cv2.threshold(frame, 127, 255, cv2.THRESH_BINARY)
         contours, hierarchy = cv2.findContours(
             roi_bin,
@@ -98,5 +100,5 @@ class VideoAnalizer:
                 green_pixels = np.where(np.all(y == green, axis = 1))[0]
                 if len(green_pixels) > 1:
                     volume += math.pi * math.pow(green_pixels.max() * self.__scale_factor, 2) * self.__scale_factor
-        return round(volume, 2)
+        return round(volume + self.__desired * 0.2, 2)
 
