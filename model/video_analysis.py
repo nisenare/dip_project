@@ -1,18 +1,24 @@
 import cv2
+import math
+import numpy as np
 from ultralytics import YOLO
 
 class VideoAnalizer:
-
                                                             # cm / pixel
     def __init__(self, yolo_model_path = "./model/last.pt", scale_factor = 18.7 / 380):
         self.__model = model = YOLO(yolo_model_path)
         self.__scale_factor = scale_factor
+        self.__show_vars = True
 
     def analize_frame(self, frame):
-        (x1, y1, x2, y2), frame = self.__detect_liquid(frame)
-        return frame
-        # self.__calculateVolume(frame_with_roi)
-        # return frame_with_roi
+        try:
+            (x1, y1, x2, y2), h, w, frame = self.__detect_liquid(frame)
+            volume = self.__calculate_volume(frame, (x1, y1, x2, y2))
+            if self.__show_vars:
+                self.__show_vars_on_image((x1, y1, x2, y2), h, w, volume, frame)
+        except:
+            return 0, 0, 0, frame
+        return h, w, volume, frame
     
     def set_scale_factor(self, factor):
         self.__scale_factor = factor
@@ -20,22 +26,77 @@ class VideoAnalizer:
     def __detect_liquid(self, frame):
         results = self.__model(frame, stream = True, verbose = False)
         x1, y1, x2, y2 = 0, 0, 0, 0
+        h = 0
+        w = 0
         for r in results:
             boxes = r.boxes
             if boxes:
                 box = boxes[0]
                 x1, y1, x2, y2 = box.xyxy[0]
-                x1, y1, x2, y2 = int(x1), int(y1) - 10, int(x2), int(y2) # convert to int values
-                cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 255), 2)
-                org = [x1, y1]
-                font = cv2.FONT_HERSHEY_COMPLEX_SMALL
-                fontScale = 1
-                color = (255, 255, 0)
-                thickness = 2
-                cv2.putText(frame, "Liquido", org, font, fontScale, color, thickness)
-        return (x1, y1, x2, y2), frame
+                x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+                width = x2 - x1
+                height = y2 - y1
+                if width == 0 or height == 0:
+                    break
+                if width > int(frame.shape[1] * .60):
+                    break
+                h = round(height * self.__scale_factor, 2)
+                w = round(width * self.__scale_factor, 2)
+        return (x1, y1, x2, y2), h, w, frame
+    
+    def __show_vars_on_image(self, roi_bounds, h, w, volume, frame):
+        if w == 0 or h == 0:
+            return frame
+        org = [roi_bounds[0] - 20, roi_bounds[1] - 20]
+        font = cv2.FONT_HERSHEY_PLAIN
+        fontScale = 0.75
+        color = 69, 35, 168
+        thickness = 2
+        cv2.rectangle(
+            frame,
+            (roi_bounds[0], roi_bounds[1]),
+            (roi_bounds[2], roi_bounds[3]),
+            color,
+            2
+        )
+        cv2.putText(
+            frame,
+            "BOTTLE (w, h) = (" + str(w) + ", " + str(h) + ") cm",
+            org,
+            font, 
+            fontScale,
+            color,
+            thickness
+        )
+        return frame
 
-    def __calculate_volume(self, frame_with_roi):
-        if self.__last_frame_bottle_rect == 0:
-            return
+    def __calculate_volume(self, frame, roi_bounds):
+        width = roi_bounds[2] - roi_bounds[0]
+        height = roi_bounds[3] - roi_bounds[1]
+        volume = 0
+        if width == 0 or height == 0:
+            return volume
+        frame = frame[
+            roi_bounds[1] - 10:roi_bounds[3] + 10,
+            roi_bounds[0] - 10:roi_bounds[2] + 10
+        ]
+        roi_orig = frame.copy()[:,int(frame.shape[1]/2):]
+        frame = cv2.cvtColor(roi_orig, cv2.COLOR_BGR2GRAY)
+        frame = 255 - frame
+        frame = cv2.GaussianBlur(frame, (3, 3), 1)
+        ret, roi_bin = cv2.threshold(frame, 127, 255, cv2.THRESH_BINARY)
+        contours, hierarchy = cv2.findContours(
+            roi_bin,
+            cv2.RETR_EXTERNAL,
+            cv2.CHAIN_APPROX_SIMPLE
+        )
+        if contours:
+            roi_bin = cv2.cvtColor(roi_bin, cv2.COLOR_GRAY2BGR)
+            cv2.drawContours(roi_bin, contours, len(contours) - 1, (0, 255, 0), 1)
+            for y in roi_bin:
+                green = [0, 255, 0]
+                green_pixels = np.where(np.all(y == green, axis = 1))[0]
+                if len(green_pixels) > 1:
+                    volume += math.pi * math.pow(green_pixels.max() * self.__scale_factor, 2) * self.__scale_factor
+        return round(volume, 2)
 

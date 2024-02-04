@@ -48,9 +48,18 @@ class VideoLabel(tk.Label):
     def toggle_resize(self):
         self.__should_resize = not self.__should_resize
 
+    def set_info_frame(self, info_frame):
+        self.__info_frame = info_frame
+
+    def change_scale_factor(self, scale_factor):
+        self.__cap.set_scale_factor(scale_factor)
+
     def __update_frame(self):
         ret, frame = self.__cap.get_frame()
         if ret:
+            self.__info_frame.update_altura_bottle(self.__cap.get_height())
+            self.__info_frame.update_ancho_bottle(self.__cap.get_width())
+            self.__info_frame.update_volumen_bottle(self.__cap.get_volume())
             if self.__should_resize:
                 frame = self.__image_resize(frame, height = self.__resize_height)
             im = Image.fromarray(frame)
@@ -88,6 +97,9 @@ class ThreadedVideoCapture:
         self.__video_stop = threading.Event()
         self.ret = False
         self.frame = None
+        self.__volume = 0
+        self.__height = 0
+        self.__width = 0
 
     def set_new_src(self, index):
         self.__video_stop.set()
@@ -101,26 +113,40 @@ class ThreadedVideoCapture:
         self.__thread = threading.Thread(target = self.__process)
         self.__thread.start()
 
+    def set_scale_factor(self, scale_factor):
+        self.__video_analyzer.set_scale_factor(scale_factor)
+
     def start(self):
         self.__thread.start()
 
     def get_frame(self):
         return self.ret, self.frame
+    
+    def get_volume(self):
+        return self.__volume
+    
+    def get_height(self):
+        return self.__height
+    
+    def get_width(self):
+        return self.__width
 
     def __process(self):
         while not self.__video_stop.is_set():
-            ret, frame = self.__cap.read()
-            
+            ret, frame = self.__cap.read() 
+            volume = 0
             if ret:
-                frame = self.__video_analyzer.analize_frame(frame)
+                h, w, volume, frame = self.__video_analyzer.analize_frame(frame)
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             else:
                 print('[ThreadedVideoCapture] stream end: ', self.__video_source)
                 self.__video_stop.set()
                 break
             self.ret = ret
+            self.__volume = volume
+            self.__height = h
+            self.__width = w
             self.frame = cv2.resize(frame, (640, 480))
-            
             time.sleep(1/30)
 
     def release(self):
