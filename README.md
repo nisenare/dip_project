@@ -10,7 +10,7 @@ Se recomienda instalar estas dependencias en un entorno virtual de Python:
 * imutils
 * ultralytics
 
-## Requerimiento extra
+### Requerimiento extra
 Se recomienda usar una tarjeta gráfica dedicada.
 
 ### Créditos
