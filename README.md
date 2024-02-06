@@ -1,5 +1,6 @@
 ## Sistema de estimación del volumen del líquido usando visión por computadora
 Programa escrito en Python para la estimación del volumen del líquido. En este estado, funciona con botellas de Coca Cola de 500ml. Puede ser reutilizado como módulo para futuros proyectos.
+
 ![Programa](/images/programa.png)
 
 ### Dependencias
